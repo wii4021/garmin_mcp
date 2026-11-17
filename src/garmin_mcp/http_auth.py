@@ -13,6 +13,7 @@ AuthSettings require an issuer URL), so the built app is wrapped instead.
 import hmac
 import ipaddress
 import os
+from urllib.parse import parse_qs
 
 from starlette.responses import JSONResponse
 
@@ -46,6 +47,12 @@ class BearerTokenGate:
         self._token = token.encode("utf-8")
 
     def authorized(self, scope) -> bool:
+        # Also accept ?key=<token> in the URL, for MCP clients (such as
+        # claude.ai custom connectors) that cannot send custom headers.
+        query = parse_qs((scope.get("query_string") or b"").decode("latin-1"))
+        for candidate in query.get("key", []):
+            if hmac.compare_digest(candidate.strip().encode("utf-8"), self._token):
+                return True
         for name, value in scope.get("headers") or ():
             if name.lower() != b"authorization":
                 continue
