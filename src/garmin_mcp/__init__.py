@@ -578,6 +578,12 @@ class _ToolFilter:
         return getattr(self._app, item)
 # ---------------------------------------------------------------------------
 
+def _display_tokenstore(tokenstore: str) -> str:
+    """Never echo token contents: GARMINTOKENS may hold the token JSON itself."""
+    if tokenstore and len(tokenstore) > 512:
+        return "<token data from GARMINTOKENS>"
+    return tokenstore
+
 
 def init_api(email, password, tokenstore=None, tokenstore_base64=None, is_cn=None):
     """Initialize Garmin API with your credentials.
@@ -601,7 +607,7 @@ def init_api(email, password, tokenstore=None, tokenstore_base64=None, is_cn=Non
     try:
         # Using Oauth1 and OAuth2 token files from directory
         print(
-            f"Trying to login to Garmin Connect using token data from directory '{tokenstore}'...\n",
+            f"Trying to login to Garmin Connect using token data from directory '{_display_tokenstore(tokenstore)}'...\n",
             file=sys.stderr,
         )
 
@@ -650,7 +656,7 @@ def init_api(email, password, tokenstore=None, tokenstore_base64=None, is_cn=Non
         print(
             f"{token_problem}\n"
             "Logging in with your Garmin Connect credentials to generate new tokens; "
-            f"they will be stored in '{tokenstore}' for future use.\n",
+            f"they will be stored in '{_display_tokenstore(tokenstore)}' for future use.\n",
             file=sys.stderr,
         )
         try:
@@ -674,7 +680,7 @@ def init_api(email, password, tokenstore=None, tokenstore_base64=None, is_cn=Non
             # leave them world-readable on multi-user hosts.
             token_utils.secure_token_dir(tokenstore)
             print(
-                f"Oauth tokens stored in '{tokenstore}' directory for future use. (first method)\n",
+                f"Oauth tokens stored in '{_display_tokenstore(tokenstore)}' directory for future use. (first method)\n",
                 file=sys.stderr,
             )
             # The directory above is the login source; base64 is only an
@@ -690,7 +696,7 @@ def init_api(email, password, tokenstore=None, tokenstore_base64=None, is_cn=Non
                     token_file.write(token_base64)
             except OSError as err:
                 print(
-                    f"WARNING: OAuth tokens were saved to '{tokenstore}', but the optional "
+                    f"WARNING: OAuth tokens were saved to '{_display_tokenstore(tokenstore)}', but the optional "
                     f"base64 export to '{tokenstore_base64}' failed: {err}",
                     file=sys.stderr,
                 )
@@ -708,7 +714,7 @@ def init_api(email, password, tokenstore=None, tokenstore_base64=None, is_cn=Non
                 garmin.login(tokenstore)
             except Exception as err:
                 print(
-                    f"ERROR: OAuth tokens were saved to '{tokenstore}', but loading the "
+                    f"ERROR: OAuth tokens were saved to '{_display_tokenstore(tokenstore)}', but loading the "
                     f"profile/settings from the saved tokens failed: {err}\n"
                     "The token files were retained; the server has no initialized client.",
                     file=sys.stderr,

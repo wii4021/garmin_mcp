@@ -101,7 +101,7 @@ def validate_tokens(token_path: str = None, is_cn: bool = False) -> Tuple[bool, 
 
     # Check if tokens exist
     if not token_exists(token_path):
-        return False, f"Token directory not found: {token_path}"
+        return False, f"Token directory not found: {token_path if len(str(token_path)) <= 512 else '<token data>'}"
 
     # Suppress stderr during validation to avoid confusing library error messages
     old_stderr = sys.stderr
@@ -127,7 +127,7 @@ def validate_tokens(token_path: str = None, is_cn: bool = False) -> Tuple[bool, 
                 return False, f"Authentication failed: {error_msg.split(':')[0]}"
 
     except FileNotFoundError:
-        return False, f"Token files not found in: {token_path}"
+        return False, f"Token files not found in: {token_path if len(str(token_path)) <= 512 else '<token data>'}"
     except GarminConnectConnectionError as e:
         error_msg = str(e)
         if "401" in error_msg or "Unauthorized" in error_msg:
